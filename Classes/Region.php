@@ -1,9 +1,11 @@
 <?php
 namespace Classes;
+
 use Exception; //à réactiver
 
 include_once dirname(__FILE__) . '/db_connect.php';
-include_once dirname(__FILE__) . '/SalesPro.php';
+include_once dirname(__FILE__) . '/User.php';
+include_once dirname(__FILE__) . '/Log.php';
 
 
 
@@ -92,7 +94,7 @@ class Region
         $region_id = mysqli_real_escape_string($conn, $region_id);
         //On va chercher à compter les données dans les bases new et current de region_id
         $sql = "SELECT RE.code as region_code, RE.region_id as region_id, RE.libelle as region_libelle
-                FROM rpps_mstr_region RE
+                FROM rpps_region RE
                 WHERE RE.region_id = $region_id";
         //echo($sql);
         try
@@ -123,133 +125,120 @@ class Region
         }
     }
     
-    public function updateDoctorSalesProLink($region_id, $dspl, $user_id, $process_id)
+    public function updateDoctorUser($region_id, $dspl, $user_id, $process_id)
     {
         $instance = \ConnectDB::getInstance();
         $conn = $instance->getConnection();
         
-        
+        $Log = new Log();
+        $Log->writeLogNoEcho($region_id, "Début mise à jour DOCTEUR - UTILISATEUR", $process_id);
         $region_id = mysqli_real_escape_string($conn, $region_id);
         
-        $result = $this->getRegionCode($region_id);
-        
-        //var_dump($dspl);
-        
-        switch($result) {
-            case 0:
-                $region_code = $this->__get('code');
-                break;
-            case -1:
-                return -1;
-                break;
-            case -2:
-                return -2;
-                break;
-        }
-        
-        //echo(nl2br($region_code . "\n"));
-        //$dspl = mysqli_real_escape_string($conn, $dspl);
-        
-        //echo('udspl');
-        //var_dump($dspl);
         
         $lst_identifiant_delete = "'" . implode( "', '", array_column($dspl,'doc_identifiant'))  . "'";
         
         //echo($lst_identifiant_delete);
         
         
-        $sql = "START TRANSACTION";
-        //echo(nl2br($sql . "\n"));
-        /*        */
-        mysqli_query($conn, $sql);
+        
 
+        $Log->writeLogNoEcho($region_id, "Suppression des données obsolètes", $process_id);
+        $sql = "DELETE FROM rpps_doctor_user 
+                WHERE identifiant_PP in (" . $lst_identifiant_delete . ")
+                    AND region_id = $region_id";
         
-        $sql = "DELETE FROM rpps_" . $region_code . "_doctor_sales_pro_link 
-                WHERE identifiant_PP in (" .$lst_identifiant_delete . ")";
+        mysqli_begin_transaction($conn);
         
         //echo(nl2br($sql . "\n"));
-        /**/
+        
+        //return -1;
+
         if (! $result = mysqli_query($conn, $sql))
         {
-            $sql = "ROLLBACK";
-            mysqli_query($conn, $sql);
+            mysqli_rollback($conn);
+            $Log->writeLogNoEcho($region_id, "Erreur suppression", $process_id);
+            $Log->writeLogNoEcho($region_id, "Fin mise à jour  DOCTEUR - UTILISATEUR", $process_id);
             return -3;
         }
+        else
+        {
+            $Log->writeLogNoEcho($region_id, "Suppression OK", $process_id);
+            $Log->writeLogNoEcho($region_id, "Création des nouveaux liens : " . count($dspl), $process_id);
+        }
         
-        $SalesPro = new SalesPro();
+
+        $User = new User();
         
         
         for($i = 0; $i < count($dspl); $i++)
         {
             //echo($dspl[$i]['doc_identifiant']);
             $identifiant_pp = $dspl[$i]['doc_identifiant'];
+            $user_token = $dspl[$i]['sales_pro_token_new'];
             
-            $result = $SalesPro->getSalesProIdByToken($dspl[$i]['sales_pro_token_new'], $region_id);
+            $Log->writeLogNoEcho($region_id, "Récupération user_id", $process_id);
+            $result = $User->getUserId($user_token);
             
             switch ($result) {
                 case 0:
                     //response(200, "region_tables_ok", NULL);
-                    $sales_pro_id = $SalesPro->__get('sales_pro_id');
+                    $sales_pro_id = $User->__get('user_id');
+                    $Log->writeLogNoEcho($region_id, "Récupération user_id OK", $process_id);
                     break;
                 case -1:
-                    return -1; //proposer de relancer
-                    break;
-                case -2:
-                    return -2; //proposer de relancer
-                    break;
-                case -3:
+                    $Log->writeLogNoEcho($region_id, "Récupération user_id KO", $process_id);
+                    $Log->writeLogNoEcho($region_id, "Fin mise à jour  DOCTEUR - UTILISATEUR", $process_id);
                     return -6; //proposer de relancer
                     break;
-                case -4:
+                case -2:
+                    $Log->writeLogNoEcho($region_id, "Récupération user_id KO", $process_id);
+                    $Log->writeLogNoEcho($region_id, "Fin mise à jour  DOCTEUR - UTILISATEUR", $process_id);
                     return -7; //proposer de relancer
                     break;
             }
-            $sql = "INSERT INTO rpps_" . $region_code . "_doctor_sales_pro_link
-                    (identifiant_pp, sales_pro_id, link_type_id, process_id)
+            
+            $lien = $i + 1;
+            
+            $Log->writeLogNoEcho($region_id, "Création lien " . $lien, $process_id);
+            
+            $sql = "INSERT INTO rpps_doctor_user
+                    (user_id, identifiant_pp, link_type_id, region_id, process_id)
                     SELECT
-                    '$identifiant_pp', $sales_pro_id, link_type_id, $process_id
-                    FROM rpps_" . $region_code . "_link_type
+                    $sales_pro_id, '$identifiant_pp', link_type_id, $region_id, $process_id
+                    FROM rpps_link_type
                     WHERE default_link_type = 2";
             
             //echo(nl2br($sql . "\n"));
-            /**/
+
             if (! $result = mysqli_query($conn, $sql))
             {
-                $sql = "ROLLBACK";
-                mysqli_query($conn, $sql);
+                $Log->writeLogNoEcho($region_id, "Création lien " . $lien . " KO", $process_id);
+                $Log->writeLogNoEcho($region_id, "Fin mise à jour  DOCTEUR - UTILISATEUR", $process_id);
+                mysqli_rollback($conn);
                 return -8;
             }
-            
+            else
+            {
+                $Log->writeLogNoEcho($region_id, "Création lien " . $lien . " OK (" . $identifiant_pp . "->" . $sales_pro_id . ")", $process_id);
+            }   
         }
-        
-        $sql = "COMMIT";
-        //echo(nl2br($sql . "\n"));
-        /**/
-        mysqli_query($conn, $sql);
+        $Log->writeLogNoEcho($region_id, "Fin mise à jour  DOCTEUR - UTILISATEUR", $process_id);
+        mysqli_commit($conn);
         return 0;
-        
+
     }
     
-    public function getRegionDoctors($region_id)
+    public function getRegionDoctors($region_id, $region_code)
     {
         $instance = \ConnectDB::getInstance();
         $conn = $instance->getConnection();
         //Une requête par région de l'agence
         $region_id = mysqli_real_escape_string($conn, $region_id);
+        $region_code = mysqli_real_escape_string($conn, $region_code);
         
-        $result = $this->getRegionCode($region_id);
         
-        switch ($result) {
-            case 0:
-                $region_code = $this->__get('code');
-                break;
-            case -1:
-                return -1;
-                break;
-            case -2:
-                return -2;
-                break;
-        }
+
+
         
         $sql = "SELECT DISTINCT
                     	CD.Identifiant_PP as doc_identifiant,
@@ -258,11 +247,12 @@ class Region
                         CD.Prenom_d_exercice as doc_first_name,
                         PF.profession_id as profession_id,
                         CD.Libelle_savoir_faire as doc_speciality,
-                        SP.sales_pro_token
-                    FROM rpps_" . $region_code . "_current_data CD
-                    INNER JOIN rpps_" . $region_code . "_doctor_sales_pro_link DSP on DSP.identifiant_pp = CD.Identifiant_PP
-                    INNER JOIN rpps_" . $region_code . "_sales_pro SP on SP.sales_pro_id = DSP.sales_pro_id
-                    INNER JOIN rpps_" . $region_code . "_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                        US.token
+                    FROM rpps_current_data CD
+                    INNER JOIN rpps_doctor_user DU on DU.identifiant_pp = CD.Identifiant_PP AND DU.region_id = CD.region_id
+                    INNER JOIN rpps_user US on US.user_id = DU.user_id
+                    INNER JOIN rpps_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                    WHERE CD.region_id = $region_id
                     ORDER BY CD.Libelle_savoir_faire, CD.Nom_d_exercice, CD.Prenom_d_exercice";
         
         //echo(nl2br($sql . "\n"));
@@ -290,9 +280,7 @@ class Region
     
     $this->region_doctors_array = $data_doctors;
     return 0;
-        
-        
-        
+ 
     }
     
 }

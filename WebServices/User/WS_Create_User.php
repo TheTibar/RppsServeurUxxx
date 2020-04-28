@@ -10,8 +10,11 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIO
 
 require_once dirname(__FILE__) . '/../../Classes/User.php';
 require_once dirname(__FILE__) . '/../../Classes/Agency.php';
+require_once dirname(__FILE__) . '/../../Classes/Process.php';
+
 use Classes\User;
 use Classes\Agency;
+use Classes\Process;
 
 function response($status, $status_message, $data)
 {
@@ -44,6 +47,22 @@ if (! empty($new_user_data))
     $region_array = $data["new_sp_region"];
     $agency_token = $data["agency_token"];
     $color = $data["color"];
+    
+    $Process = new Process();
+    
+    $first_region = $region_array[0];
+    $result = $Process->newProcess($first_region, 'USER CREATION', 0);
+
+    
+    switch($result) {
+        case 0:
+            $process_id = $Process->__get('process_id');
+            break;
+        case -1:
+            response(200, "create_process_error", NULL);
+            break;
+    }
+    
     
     $UserCreation = new User();
     $result = $UserCreation->getUserId($user_token_creation);
@@ -111,12 +130,12 @@ if (! empty($new_user_data))
     if($create)
     {
         //c'est une création
-        $result = $User->createUser($email, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $display_order);
+        $result = $User->createUser($email, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $display_order, $process_id);
     }
     else
     {
         //c'est une mise à jour
-        $result = $User->updateUser($user_id, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color);
+        $result = $User->updateUser($user_id, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $process_id);
     }
     
     //echo($result);
@@ -125,7 +144,8 @@ if (! empty($new_user_data))
     {
         switch($result) {
             case 0:
-                response(200, "create_user_completed", NULL);
+                //response(200, "create_user_completed", NULL);
+                $t = 1;
                 break;
             case -1:
                 response(200, "create_process_id_error", NULL);
@@ -147,6 +167,18 @@ if (! empty($new_user_data))
             
         }
     }
+    
+    //echo("juste avant : " . $process_id);
+    $result = $Process->finalStep($process_id);
+    switch($result) {
+        case 0:
+            response(200, "create_user_completed", NULL);
+            break;
+        case -1:
+            response(200, "final_process_step_ko", NULL);
+            break;
+    }
+    
 }
 else
 {

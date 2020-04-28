@@ -364,7 +364,6 @@ class Agency
         
     }
 
- 
     public function getDoctorsByAgency($agency_id)
     {
         $instance = \ConnectDB::getInstance();
@@ -372,14 +371,13 @@ class Agency
         //Une requête par région de l'agence
         $agency_id = mysqli_real_escape_string($conn, $agency_id);
         
-        //Récupérer la liste des régions de l'agence
-        
-        $sql = "SELECT 
-                	RE.region_id as region_id, 
-                    RE.libelle as libelle, 
+        //Récupérer la liste des régions de l'agence filtré par utilisateur
+        $sql = "SELECT
+                	RE.region_id as region_id,
+                    RE.libelle as libelle,
                     RE.code as code
-                FROM rpps_mstr_region RE
-                INNER JOIN rpps_mstr_agency_region AR on AR.region_id = RE.region_id
+                FROM rpps_region RE
+                INNER JOIN rpps_agency_region AR on AR.region_id = RE.region_id
                 WHERE AR.agency_id = $agency_id";
         
         try
@@ -412,12 +410,14 @@ class Agency
             return ($e->getMessage());
         }
         
-        $data_doctors = [];
         
+        
+        $data_doctors = [];
         
         for($i = 0; $i < count($data_region) ; $i++)
         {
             $region_code = $data_region[$i]['code'];
+            $region_id = $data_region[$i]['region_id'];
             $sql = "SELECT DISTINCT
                     	CD.Identifiant_PP as doc_identifiant, 
                     	CD.Code_civilite as doc_civilite, 
@@ -425,11 +425,12 @@ class Agency
                         CD.Prenom_d_exercice as doc_first_name, 
                         PF.profession_id as profession_id,
                         CD.Libelle_savoir_faire as doc_speciality,
-                        SP.sales_pro_token
-                    FROM rpps_" . $region_code . "_current_data CD
-                    INNER JOIN rpps_" . $region_code . "_doctor_sales_pro_link DSP on DSP.identifiant_pp = CD.Identifiant_PP
-                    INNER JOIN rpps_" . $region_code . "_sales_pro SP on SP.sales_pro_id = DSP.sales_pro_id
-                    INNER JOIN rpps_" . $region_code . "_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                        US.token
+                    FROM rpps_current_data CD
+                    INNER JOIN rpps_doctor_user DU on DU.identifiant_pp = CD.Identifiant_PP
+                    INNER JOIN rpps_user US on US.user_id = DU.user_id
+                    INNER JOIN rpps_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                    WHERE CD.region_id = $region_id
                     ORDER BY CD.Libelle_savoir_faire, CD.Nom_d_exercice, CD.Prenom_d_exercice";
             
             //echo(nl2br($sql . "\n"));
@@ -463,14 +464,14 @@ class Agency
         for($i = 0; $i < count($data_region) ; $i++)
         {
             $region_code = $data_region[$i]['code'];
+            $region_id = $data_region[$i]['region_id'];
             $sql = "SELECT DISTINCT
                         PF.profession_id,
                         CD.Libelle_savoir_faire as doc_speciality
-                    FROM rpps_" . $region_code . "_current_data CD
-                    INNER JOIN rpps_" . $region_code . "_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                    FROM rpps_current_data CD
+                    INNER JOIN rpps_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                    WHERE CD.region_id = $region_id
                     ORDER BY CD.Libelle_savoir_faire";
-            
-            //echo(nl2br($sql . "\n"));
             
             try
             {
@@ -501,12 +502,17 @@ class Agency
         for($i = 0; $i < count($data_region) ; $i++)
         {
             $region_code = $data_region[$i]['code'];
+            $region_id = $data_region[$i]['region_id'];
             $sql = "SELECT 
-                        SP.name,
-                        SP.first_name,
-                        SP.sales_pro_token
-                    FROM rpps_" . $region_code . "_sales_pro SP
-                    ORDER BY SP.name, SP.first_name";
+                        US.last_name,
+                        US.first_name,
+                        US.token
+                    FROM rpps_user US
+                    INNER JOIN rpps_user_region UR on UR.user_id = US.user_id
+                    INNER JOIN rpps_role RO on RO.role_id = US.role_id
+                    WHERE UR.region_id = $region_id
+                        AND RO.label <> 'ADMIN'
+                    ORDER BY US.last_name, US.first_name";
             
             //echo(nl2br($sql . "\n"));
             
@@ -536,4 +542,188 @@ class Agency
         
         
     }
+    
+    
+    public function getDoctorsByAgencyAndUser($agency_id, $user_id)
+    {
+        $instance = \ConnectDB::getInstance();
+        $conn = $instance->getConnection();
+        //Une requête par région de l'agence
+        $agency_id = mysqli_real_escape_string($conn, $agency_id);
+        
+        //Récupérer la liste des régions de l'agence filtré par utilisateur
+        $sql = "SELECT
+                	RE.region_id as region_id,
+                    RE.libelle as libelle,
+                    RE.code as code
+                FROM rpps_region RE
+                INNER JOIN rpps_agency_region AR on AR.region_id = RE.region_id
+                INNER JOIN rpps_user_region UR on UR.region_id = AR.region_id
+                WHERE AR.agency_id = $agency_id
+                    AND UR.user_id = $user_id";
+        
+        try
+        {
+            if ($result = mysqli_query($conn, $sql))
+            {
+                $data_region = [];
+                while ($line = mysqli_fetch_assoc($result))
+                {
+                    $data_region[] = $line;
+                }
+                if (count($data_region) > 0)
+                {
+                    $this->region_array = $data_region;
+                    //return 0;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                //echo(mysqli_error($conn));
+                return -1;
+            }
+        }
+        catch (Exception $e)
+        {
+            return ($e->getMessage());
+        }
+        
+        
+        
+        $data_doctors = [];
+        
+        for($i = 0; $i < count($data_region) ; $i++)
+        {
+            $region_code = $data_region[$i]['code'];
+            $region_id = $data_region[$i]['region_id'];
+            $sql = "SELECT DISTINCT
+                    	CD.Identifiant_PP as doc_identifiant,
+                    	CD.Code_civilite as doc_civilite,
+                        CD.Nom_d_exercice as doc_name,
+                        CD.Prenom_d_exercice as doc_first_name,
+                        PF.profession_id as profession_id,
+                        CD.Libelle_savoir_faire as doc_speciality,
+                        US.token
+                    FROM rpps_current_data CD
+                    INNER JOIN rpps_doctor_user DU on DU.identifiant_pp = CD.Identifiant_PP AND DU.region_id = CD.region_id
+                    INNER JOIN rpps_user US on US.user_id = DU.user_id
+                    INNER JOIN rpps_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                    WHERE CD.region_id = $region_id
+                    ORDER BY CD.Libelle_savoir_faire, CD.Nom_d_exercice, CD.Prenom_d_exercice";
+            
+            //echo(nl2br($sql . "\n"));
+            
+            try
+            {
+                if ($result = mysqli_query($conn, $sql))
+                {
+                    
+                    while ($line = mysqli_fetch_assoc($result))
+                    {
+                        $data_doctors[$region_code]['doctors'][] = $line;
+                    }
+                }
+                else
+                {
+                    //echo(mysqli_error($conn));
+                    return -2;
+                }
+            }
+            catch (Exception $e)
+            {
+                return ($e->getMessage());
+            }
+        }
+        
+        $this->region_doctors_array = $data_doctors;
+        
+        $data_speciality = [];
+        
+        for($i = 0; $i < count($data_region) ; $i++)
+        {
+            $region_code = $data_region[$i]['code'];
+            $region_id = $data_region[$i]['region_id'];
+            $sql = "SELECT DISTINCT
+                        PF.profession_id,
+                        CD.Libelle_savoir_faire as doc_speciality
+                    FROM rpps_current_data CD
+                    INNER JOIN rpps_profession_filter PF on PF.label = CD.Libelle_savoir_faire
+                    WHERE CD.region_id = $region_id
+                    ORDER BY CD.Libelle_savoir_faire";
+            
+            try
+            {
+                if ($result = mysqli_query($conn, $sql))
+                {
+                    
+                    while ($line = mysqli_fetch_assoc($result))
+                    {
+                        $data_speciality[$region_code]['speciality'][] = $line;
+                    }
+                }
+                else
+                {
+                    //echo(mysqli_error($conn));
+                    return -3;
+                }
+            }
+            catch (Exception $e)
+            {
+                return ($e->getMessage());
+            }
+        }
+        
+        $this->region_speciality = $data_speciality;
+        
+        $data_sales_pro = [];
+        
+        for($i = 0; $i < count($data_region) ; $i++)
+        {
+            $region_code = $data_region[$i]['code'];
+            $region_id = $data_region[$i]['region_id'];
+            $sql = "SELECT
+                        US.last_name,
+                        US.first_name,
+                        US.token
+                    FROM rpps_user US
+                    INNER JOIN rpps_user_region UR on UR.user_id = US.user_id
+                    INNER JOIN rpps_role RO on RO.role_id = US.role_id
+                    WHERE UR.region_id = $region_id
+                        AND RO.label <> 'ADMIN'
+                    ORDER BY US.last_name, US.first_name";
+            
+            //echo(nl2br($sql . "\n"));
+            
+            try
+            {
+                if ($result = mysqli_query($conn, $sql))
+                {
+                    
+                    while ($line = mysqli_fetch_assoc($result))
+                    {
+                        $data_sales_pro[$region_code]['sales_pro'][] = $line;
+                    }
+                }
+                else
+                {
+                    //echo(mysqli_error($conn));
+                    return -4;
+                }
+            }
+            catch (Exception $e)
+            {
+                return ($e->getMessage());
+            }
+        }
+        
+        $this->region_sales_pro = $data_sales_pro;
+        
+        
+    }
+    
+    
 }

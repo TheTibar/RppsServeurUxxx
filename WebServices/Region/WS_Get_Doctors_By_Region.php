@@ -11,7 +11,6 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIO
 
 include_once dirname(__FILE__) . '/../../Classes/User.php';
 include_once dirname(__FILE__) . '/../../Classes/Region.php';
-include_once dirname(__FILE__) . '/../../Classes/LocalProcess.php';
 
 
 use \Classes\Region;
@@ -35,15 +34,13 @@ $region_id = isset($_GET['region_id']) ? $_GET['region_id'] : "";
 if (! empty($region_id))
 {
 
-    
+//    sleep(3);
     $Region = new Region();
-    
-    $result = $Region->getRegionDoctors($region_id);
+    $result = $Region->getRegionCode($region_id);
     
     switch($result) {
         case 0:
-            $data = $Region->__get('region_doctors_array');
-            response(200, "region_doctors", $data);
+            $region_code = $Region->__get('code');
             break;
         case -1:
             response(200, "unknown_region_code", NULL);
@@ -51,13 +48,21 @@ if (! empty($region_id))
         case -2:
             response(200, "get_region_code_error", NULL);
             break;
+    }
+    
+    
+    $result = $Region->getRegionDoctors($region_id, $region_code);
+    
+    switch($result) {
+        case 0:
+            $data = $Region->__get('region_doctors_array');
+            response(200, "region_doctors", $data);
+            break;
         case -3:
             response(200, "get_region_doctors_error", NULL);
             break;
     }
-    
-    
-    //$last_names = array_column($a, 'last_name');
+
 }
 else
 {

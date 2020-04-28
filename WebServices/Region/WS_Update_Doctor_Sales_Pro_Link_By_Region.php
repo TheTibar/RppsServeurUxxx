@@ -11,12 +11,12 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIO
 
 include_once dirname(__FILE__) . '/../../Classes/User.php';
 include_once dirname(__FILE__) . '/../../Classes/Region.php';
-include_once dirname(__FILE__) . '/../../Classes/LocalProcess.php';
+include_once dirname(__FILE__) . '/../../Classes/Process.php';
 
 
 use \Classes\User;
 use \Classes\Region;
-use \Classes\LocalProcess;
+use \Classes\Process;
 
 function response($status, $status_message, $data)
 {
@@ -55,20 +55,14 @@ if (! empty($region_id) && ! empty($user_token) && ! empty($dspl))
             break;
     }
     
-    $LocalProcess = new LocalProcess();
+    $Process = new Process();
     
-    $result = $LocalProcess->newLocalProcess($region_id, "UPDATE DSP", 0);
+    $result = $Process->newProcess($region_id, "UPDATE DOCTOR USER", 0);
     switch($result) {
         case 0:
-            $process_id = $LocalProcess->__get('process_id');
+            $process_id = $Process->__get('process_id');
             break;
         case -1:
-            response(200, "unknown_region_code", NULL);
-            break;
-        case -2:
-            response(200, "get_region_code_error", NULL);
-            break;
-        case -3:
             response(200, "create_process_error", NULL);
             break;
     }
@@ -83,26 +77,15 @@ if (! empty($region_id) && ! empty($user_token) && ! empty($dspl))
     
     $Region = new Region();
     
-    $result = $Region->updateDoctorSalesProLink($region_id, $dspl, $user_id, $process_id);
+    $result = $Region->updateDoctorUser($region_id, $dspl, $user_id, $process_id);
     
     switch($result) {
         case 0:
-            response(200, "update_complete", NULL);
-            break;
-        case -1:
-            response(200, "unknown_region_code", NULL);
-            break;
-        case -2:
-            response(200, "get_region_code_error", NULL);
+            //$end_process = 1;
+            //response(200, "update_complete", NULL);
             break;
         case -3:
             response(200, "error_deletting_old_links_rollback", NULL);
-            break;
-        case -4:
-            response(200, "unknown_region_code", NULL);
-            break;
-        case -5:
-            response(200, "get_region_code_error", NULL);
             break;
         case -6:
             response(200, "unknown_sales_pro", NULL);
@@ -115,6 +98,17 @@ if (! empty($region_id) && ! empty($user_token) && ! empty($dspl))
             break;
     }
     
+    
+    $result = $Process->finalStep($process_id);
+    
+    switch($result) {
+        case 0:
+            response(200, "update_complete", NULL);
+            break;
+        case -1:
+            response(200, "final_process_step_ko", NULL);
+            break;
+    }
     
     //$last_names = array_column($a, 'last_name');
 }

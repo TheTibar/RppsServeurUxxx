@@ -10,10 +10,11 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIO
 
 
 include_once dirname(__FILE__) . '/../../Classes/Agency.php';
-include_once dirname(__FILE__) . '/../../Classes/SalesPro.php';
+include_once dirname(__FILE__) . '/../../Classes/User.php';
 
 
 use \Classes\Agency;
+use \Classes\User;
 
 function response($status, $status_message, $data)
 {
@@ -34,6 +35,22 @@ $user_token = isset($_GET['user_token']) ? $_GET['user_token'] : "";
 if (! empty($agency_token) && ! empty($user_token))
 {
 
+    $User = new User();
+    $result = $User->getUserId($user_token);
+    
+    switch($result) {
+        case 0:
+            $user_id = $User->__get('user_id');
+            break;
+        case -1: //utilisateur n'existe pas
+            response(200, "user_creation_unknown", NULL);
+            break;
+        case -2: //impossible de vérifier l'existance de l'utilisateur, on provoque une erreur et on propose de relancer
+            response(200, "get_user_creation_id_error", NULL);
+            break;
+    }
+    
+
     $Agency = new Agency();
     $result = $Agency->getAgencyIdByToken($agency_token, $user_token);
     
@@ -51,7 +68,7 @@ if (! empty($agency_token) && ! empty($user_token))
     }
     
 
-    $result = $Agency->getDoctorsByAgency($agency_id);
+    $result = $Agency->getDoctorsByAgencyAndUser($agency_id, $user_id);
     
     switch($result) {
         case 0:
@@ -63,7 +80,7 @@ if (! empty($agency_token) && ! empty($user_token))
             response(200, "agency_doctors", $data);
             break;
         case 1:
-            response(200, "no_region_agency", NULL);
+            response(200, "no_user_region_agency", NULL);
             break;
         case -1:
             response(200, "get_agency_region_error", NULL);

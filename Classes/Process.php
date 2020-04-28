@@ -73,8 +73,7 @@ class Process
             echo ("Erreur : " . $e);
         }
     }
-    
-    
+        
     public function nextStep($process_id)
     {
         $instance = \ConnectDB::getInstance();
@@ -97,14 +96,15 @@ class Process
             echo ("Erreur : " . $e);
         }
     }
-    
-    
+       
     public function finalStep($process_id)
     {
         $instance = \ConnectDB::getInstance();
         $conn = $instance->getConnection();
-        
+
         $process_id = mysqli_real_escape_string($conn, $process_id);
+        
+        //echo("dans FS : " . $process_id);
         
         $sql = "UPDATE rpps_process
                 SET step = 99,

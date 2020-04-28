@@ -19,8 +19,8 @@ use Classes\Region;
 
 $User = new User();
 
-/*
-$login = 'emailnadine@gmail.com';
+
+$login = 'emailarmelle@gmail.com';
 $token = $login . rand() . time() . rand();
 $token = hash("sha256", $token);
 echo(nl2br($login . ' : ' . $token . "\n"));
@@ -28,7 +28,7 @@ echo(nl2br($login . ' : ' . $token . "\n"));
 $password_orig = 'mdp1234';
 $password = hash("sha256", $password_orig);
 echo($password_orig . ' : ' . $password);
-*/
+/**/
 
 /*
 $result = $User->existsUser($login);
@@ -99,9 +99,9 @@ switch($result) {
 
 $Agency = new Agency();
 
-
-$agency_id = 1;
 /*
+$agency_id = 1;
+
 $result = $Agency->getAgencyInfo($agency_id);
 
 switch($result) {
@@ -137,7 +137,8 @@ switch($result) {
 }
 */
 
-
+/*
+$agency_id = 1;
 $result = $Agency->getMaxDisplayOrder($agency_id);
  
 switch($result) {
@@ -148,7 +149,7 @@ switch($result) {
         echo("rq erreur");
         break;
 }
-
+*/
 
 
 

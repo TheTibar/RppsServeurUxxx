@@ -46,7 +46,7 @@ class User
         }
     }
     
-    public function createUser($email, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $display_order)  
+    public function createUser($email, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $display_order, $process_id)  
     //Crée un utilistaur et l'affecte à une agence et à un ensemble de régions
     {
 
@@ -56,23 +56,12 @@ class User
         //tentative prepared statement : 
         
         $Log = new Log();
-        $Process = new Process();
         
         //echo($region_array[0]);
         $first_region = $region_array[0];
         
-        $result = $Process->newProcess($first_region, 'USER_CREATION', 0);
-        
-        switch($result) {
-            case 0:
-                $process_id = $Process->__get('process_id');
-                $Log->writeLogNoEcho($first_region, "Début création nouvel utilisateur : " . $email, $process_id);
-                $Log->writeLogNoEcho($first_region, "Id_utilisateur de création : " . $user_id_creation, $process_id);
-                break;
-            case -1:
-                $Log->writeLogNoEcho($first_region, "Erreur création Process", -1);
-                break;
-        }
+        $Log->writeLogNoEcho($first_region, "Début création nouvel utilisateur : " . $email, $process_id);
+        $Log->writeLogNoEcho($first_region, "Id_utilisateur de création : " . $user_id_creation, $process_id);
         
         $token = $email . rand() . time() . rand();
         $token = hash("sha256", $token);
@@ -260,7 +249,7 @@ class User
                 $Log->writeLogNoEcho($last_region, "Fin création utilisateur : " . $email, $process_id);
 
                 // Close connection
-                mysqli_close($conn);
+                // mysqli_close($conn);
                 return 0;
             }
             else 
@@ -292,7 +281,7 @@ class User
         
     }
                              //$user_id, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id
-    public function updateUser($user_id, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id)
+    public function updateUser($user_id, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $process_id)
     {
         //tentative prepared statement : 
         $instance = \ConnectDB::getInstance();
