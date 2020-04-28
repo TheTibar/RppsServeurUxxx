@@ -63,6 +63,26 @@ if (! empty($new_user_data))
             break;
     }
     
+    $User = new User();
+    
+    //On vérifie si l'utilisateur existe, si oui, on ne fait rien, si non, on le crée entièrement
+    
+    $result = $User->existsUser($email);
+    //echo($result);
+    
+    switch($result) {
+        case 0: //utilisateur déja existant, on propose d'envoyer un message et on remet sur la page d'accueil
+            response(200, "user_email_already_exists", NULL);
+            break;
+        case -1: //utilisateur n'existe pas
+            //$create = TRUE;
+            break;
+        case -2: //impossible de vérifier l'existance de l'utilisateur, on provoque une erreur et on propose de relancer
+            response(200, "check_user_exists_error", NULL);
+            break;
+    }
+    
+    
     
     $UserCreation = new User();
     $result = $UserCreation->getUserId($user_token_creation);
@@ -106,42 +126,26 @@ if (! empty($new_user_data))
     //echo(nl2br("user_creation_id : " . $user_id_creation . "\n"));
     //echo(nl2br("agency_id : " . $agency_id . "\n"));
     
-
-    $User = new User();
-
-    //On vérifie si l'utilisateur existe, si oui, on met juste à jour ses données, si non, on le crée entièrement
-    
-    $result = $User->existsUser($email);
-    //echo($result);
-    
-    switch($result) {
-        case 0: //utilisateur déja existant
-            $user_id = $User->__get('user_id');
-            $create = FALSE;
-            break;
-        case -1: //utilisateur n'existe pas
-            $create = TRUE;
-            break;
-        case -2: //impossible de vérifier l'existance de l'utilisateur, on provoque une erreur et on propose de relancer
-            response(200, "check_user_exists_error", NULL);
-            break;
-    }
-    
+/*
     if($create)
     {
+    */
         //c'est une création
         $result = $User->createUser($email, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $display_order, $process_id);
-    }
+/*    
+}
     else
     {
         //c'est une mise à jour
         $result = $User->updateUser($user_id, $first_name, $last_name, $role_id, $user_id_creation, $region_array, $agency_id, $color, $process_id);
     }
+    */
     
     //echo($result);
-    
+    /*
     if($create)
     {
+    */
         switch($result) {
             case 0:
                 //response(200, "create_user_completed", NULL);
@@ -160,13 +164,15 @@ if (! empty($new_user_data))
                 response(200, "create_user_region_link_error", NULL);
                 break;
         }
-    }
+    /*
+}
     else
     {
         switch($result) {
             
         }
     }
+    */
     
     //echo("juste avant : " . $process_id);
     $result = $Process->finalStep($process_id);
