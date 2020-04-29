@@ -12,7 +12,6 @@ class Agency
     private $region_doctors_array = [];
     private $region_speciality = [];
     private $region_sales_pro = [];
-
     private $sales_pro_array = [];
     private $max_display_order;
     
@@ -226,13 +225,17 @@ class Agency
 
     public function getSalesProByAgency($agency_id) 
     {
+        
+        
         $instance = \ConnectDB::getInstance();
         $conn = $instance->getConnection();
         
         $agency_id = mysqli_real_escape_string($conn, $agency_id);
 
         //On récupère tous les utilisateurs de l'agence
-        //tout utilisateur est commercial potentiel
+        //tout utilisateur est commercial potentiel sauf ADMIN
+        //ON NE FILTRE PAS SUR LES REGIONS DE L'UTILISATEUR CONNECTE, IL DOIT VOIR TOUT LE MONDE POUR NE PAS GENERER DE DOUBLONS DE COULEURS
+        //OU D'EMAIL
         $sql = "SELECT
                     US.user_id as user_id,
                     US.token as user_token,
@@ -542,8 +545,7 @@ class Agency
         
         
     }
-    
-    
+      
     public function getDoctorsByAgencyAndUser($agency_id, $user_id)
     {
         $instance = \ConnectDB::getInstance();
