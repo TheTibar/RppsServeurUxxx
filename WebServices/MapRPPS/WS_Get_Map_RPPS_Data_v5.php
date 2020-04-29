@@ -114,6 +114,7 @@ if (! empty($region_map) && ! empty($speciality_map))
             FROM rpps_user US
             INNER JOIN rpps_doctor_user DU on DU.user_id = US.user_id
             INNER JOIN rpps_current_data CD on CD.Identifiant_PP = DU.identifiant_pp
+                AND CD.region_id = DU.region_id
             WHERE 1 = 1
             	AND CD.Libelle_savoir_faire in  ($filter_speciality)
                 AND CD.region_id IN ($filter_region)
