@@ -67,7 +67,7 @@ else
 
 
 echo("step2");
-/* A REACTIVER 
+/* A REACTIVER */
 if ($stillValid && $Log->writeLog("Début nettoyage répertoire RPPSFiles", $process_id))
 {
     $files = glob($target_directory . '*'); // get all file names
@@ -84,7 +84,7 @@ else
     $stillValid = FALSE;
     die();
 }
-*/
+
 
 echo("step3");
 
@@ -129,7 +129,7 @@ else
 echo("step4");
 
         
-/* A REACTIVER 
+/* A REACTIVER */
 if($stillValid && $Log->writeLog("Début téléchargement RPPS", $process_id) && file_put_contents($target_directory . $file_name, file_get_contents($url)))
 {
     $Log->writeLog("Fin téléchargement RPPS : " . $file_name, $process_id);
@@ -141,10 +141,10 @@ else
     $stillValid = FALSE;
     die();
 }
-*/
+
 
 echo("step5");
-/* A REACTIVER 
+/* A REACTIVER */
 if($stillValid && $Log->writeLog("Début dezippage RPPS", $process_id))
 {
     $zip = new ZipArchive;
@@ -167,7 +167,7 @@ else
     $Log->writeLog("Erreur dezippage RPPS", $process_id);
     die();
 }
-*/
+
 
 /* !!! A SUPPRIMER !!! 
 $file_name = 'PS_LibreAcces_Personne_activite_202003181109.txt';
@@ -175,7 +175,7 @@ $target_directory = 'C:/wamp64/www/RppsServeur/RPPSFiles/';
 
 /* !!! FIN A SUPPRIMER !!! */
         
-/* A REACTIVER 
+/* A REACTIVER */ 
 if($stillValid && $Log->writeLog('Début sauvegarde nom fichier', $process_id))
 {
     $sql = "INSERT INTO rpps_file_history (file_name, process_id) 
@@ -198,7 +198,7 @@ else
     $stillValid = FALSE;
     die();
 }
-  */     
+      
 
 
 $newDataTableName = 'rpps_new_data'; //ne pas commenter pour les tests

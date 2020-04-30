@@ -133,7 +133,8 @@ class Doctor
                 SELECT ND.Identifiant_PP, US.user_id, $process_id, $region_id, 'CREATE'
                 FROM rpps_new_data ND
                 INNER JOIN rpps_user_region UR on UR.region_id = ND.region_id
-                INNER JOIN rpps_user US on US.user_id = UR.user_id and US.email = 'NA'
+                INNER JOIN rpps_user US on US.user_id = UR.user_id 
+                INNER JOIN rpps_role RO on RO.role_id = US.role_id and RO.label = 'DEFAULT USER'
                 LEFT OUTER JOIN rpps_current_data CD on CD.Identifiant_PP = ND.Identifiant_PP and CD.region_id = ND.region_id
                 WHERE ND.region_id = $region_id
                 AND CD.Identifiant_PP is null
@@ -471,13 +472,13 @@ class Doctor
         
         
         $sql = "SELECT ND.Identifiant_PP as identifiant_pp, ND.Libelle_civilite as libelle_civilite, ND.Nom_d_exercice as nom_exercice, ND.Prenom_d_exercice as prenom_exercice, ND.Libelle_commune_coord_structure_ as commune
-            FROM rpps_new_data ND
-            INNER JOIN rpps_profession_filter PF on PF.label = ND.Libelle_savoir_faire and PF.profession_id = $profession_id
-    		INNER JOIN rpps_tmp_identifiant_pp TMP on TMP.Identifiant_PP = ND.Identifiant_PP AND TMP.region_id = ND.region_id
-    		WHERE TMP.process_id = $process_id
-    		AND TMP.histo_type = 'CREATE'
-            AND TMP.region_id = $region_id
-            ORDER BY ND.Nom_d_exercice";
+                FROM rpps_new_data ND
+                INNER JOIN rpps_profession_filter PF on PF.label = ND.Libelle_savoir_faire and PF.profession_id = $profession_id
+        		INNER JOIN rpps_tmp_identifiant_pp TMP on TMP.Identifiant_PP = ND.Identifiant_PP AND TMP.region_id = ND.region_id
+        		WHERE TMP.process_id = $process_id
+        		AND TMP.histo_type = 'CREATE'
+                AND TMP.region_id = $region_id
+                ORDER BY ND.Nom_d_exercice";
         
         if ($sql_result = mysqli_query($conn, $sql))
         {
