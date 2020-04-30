@@ -13,6 +13,8 @@ class Agency
     private $region_speciality = [];
     private $region_sales_pro = [];
     private $sales_pro_array = [];
+    private $sales_pro_summary_array = [];
+    private $sales_pro_region = [];
     private $max_display_order;
     
     
@@ -102,7 +104,7 @@ class Agency
         $agency_id = mysqli_real_escape_string($conn, $agency_id);
         
         $sql = "SELECT AG.agency_name as agency_name
-                FROM rpps_mstr_agency AG
+                FROM rpps_agency AG
                 WHERE AG.agency_id = $agency_id";
 
         try
@@ -132,9 +134,9 @@ class Agency
         }
             
         $sql = "SELECT RE.region_id as region_id, RE.code as region_code, RE.libelle as region_libelle
-                FROM rpps_mstr_agency AG
-                INNER JOIN rpps_mstr_agency_region AR on AR.agency_id = AG.agency_id
-                INNER JOIN rpps_mstr_region RE on RE.region_id = AR.region_id
+                FROM rpps_agency AG
+                INNER JOIN rpps_agency_region AR on AR.agency_id = AG.agency_id
+                INNER JOIN rpps_region RE on RE.region_id = AR.region_id
                 WHERE AG.agency_id = $agency_id";
         
         $data = null;
@@ -167,7 +169,7 @@ class Agency
         {
             $this->region_array = NULL;
             mysqli_free_result($result);
-            return 0;
+            return 1;
         }
             
             
@@ -236,6 +238,8 @@ class Agency
         //tout utilisateur est commercial potentiel sauf ADMIN
         //ON NE FILTRE PAS SUR LES REGIONS DE L'UTILISATEUR CONNECTE, IL DOIT VOIR TOUT LE MONDE POUR NE PAS GENERER DE DOUBLONS DE COULEURS
         //OU D'EMAIL
+        
+        //Ici, on laisse tout le monde sauf les ADMIN pour voir les couleurs de tous les comptes qui seront sur la carte
         $sql = "SELECT
                     US.user_id as user_id,
                     US.token as user_token,
@@ -285,6 +289,113 @@ class Agency
         }
     }
 
+    public function getSalesProSummaryByAgency($agency_id)
+    {
+        $instance = \ConnectDB::getInstance();
+        $conn = $instance->getConnection();
+        
+        $agency_id = mysqli_real_escape_string($conn, $agency_id);
+        
+        //On récupère tous les utilisateurs de l'agence sauf ADMIN, NON SUPPORTED et DEFAULT USER que l'on ne doit pas modifier
+        //tout utilisateur est commercial potentiel sauf ADMIN, 
+        //ON NE FILTRE PAS SUR LES REGIONS DE L'UTILISATEUR CONNECTE, IL DOIT VOIR TOUT LE MONDE POUR NE PAS GENERER DE DOUBLONS DE COULEURS
+        //OU D'EMAIL
+        $sql = "SELECT DISTINCT
+					US.user_id as user_id,
+                    RO.label as role_label,
+					US.token as token,
+                    US.first_name as first_name,
+                    US.last_name as last_name,
+                    US.email as email,
+                    US.color as color
+                FROM rpps_user US
+                INNER JOIN rpps_user_agency UA on UA.user_id = US.user_id
+                INNER JOIN rpps_role RO on RO.role_id = US.role_id
+                WHERE UA.agency_id = $agency_id
+                AND RO.label NOT IN ('ADMIN', 'NON SUPPORTED', 'DEFAULT USER')
+                ORDER BY US.display_order";
+        
+        try
+        {
+            if ($result = mysqli_query($conn, $sql))
+            {
+                $data = [];
+                while ($line = mysqli_fetch_assoc($result))
+                {
+                    $data[] = $line;
+                }
+                if (count($data) > 0)
+                {
+                    $this->sales_pro_array = $data;
+                    //return 0;
+                }
+                else
+                {
+                    $this->sales_pro_array = NULL;
+                    return 1;
+                }
+            }
+            else
+            {
+                //echo(mysqli_error($conn));
+                return -1;
+            }
+        }
+        catch (Exception $e)
+        {
+            return ($e->getMessage());
+        }
+        
+        
+        $sql = "SELECT 
+					US.user_id as user_id,
+                    RE.libelle as libelle,
+                    RE.region_id
+				FROM rpps_user US
+                INNER JOIN rpps_user_agency UA on UA.user_id = US.user_id
+                INNER JOIN rpps_role RO on RO.role_id = US.role_id
+                INNER JOIN rpps_user_region UR on UR.user_id = US.user_id
+                INNER JOIN rpps_region RE on RE.region_id = UR.region_id
+                WHERE UA.agency_id = $agency_id
+                AND RO.label NOT IN ('ADMIN', 'NON SUPPORTED', 'DEFAULT USER')
+                ORDER BY US.display_order";
+        
+        try
+        {
+            if ($result = mysqli_query($conn, $sql))
+            {
+                $data = [];
+                while ($line = mysqli_fetch_assoc($result))
+                {
+                    $data[] = $line;
+                }
+                if (count($data) > 0)
+                {
+                    $this->sales_pro_region = $data;
+                    return 0;
+                }
+                else
+                {
+                    $this->sales_pro_region = NULL;
+                    return 1;
+                }
+            }
+            else
+            {
+                //echo(mysqli_error($conn));
+                return -2;
+            }
+        }
+        catch (Exception $e)
+        {
+            return ($e->getMessage());
+        }
+        
+        
+        
+        
+    }
+    
     public function getMaxDisplayOrder($agency_id) //avec prepared statement
     {
         $instance = \ConnectDB::getInstance();
