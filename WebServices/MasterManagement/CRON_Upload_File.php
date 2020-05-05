@@ -16,7 +16,10 @@ $Process = new Process();
 $instance = \ConnectDB::getInstance();
 $conn = $instance->getConnection();
 
+
 /* A REACTIVER */
+
+
 $create_process = $Process->newProcess(0, 'CRON_Import_RPPS_Complet', 0);
 
 
@@ -305,7 +308,7 @@ else
 /* A REACTIVER */
 if($stillValid && $Log->writeLog("Début création de la table temporaire", $process_id))
 {
-    $sql = "CREATE TABLE $newDataTableName (" . $str_lst_fields . ")";
+    $sql = "CREATE TABLE $newDataTableName (" . $str_lst_fields . ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     echo($sql);
     if (mysqli_query($conn, $sql))
     {
@@ -620,7 +623,7 @@ else
 
 if($stillValid && $Log->writeLog("Début mise à jour step process dans rpps_process", $process_id))
 {
-    if($Process->finalStep($process_id))
+    if($Process->finalStep($process_id) == 0)
     {
         $Log->writeLog("Fin mise à jour step process dans rpps_mstr_process", $process_id);
         $stillValid = TRUE;
