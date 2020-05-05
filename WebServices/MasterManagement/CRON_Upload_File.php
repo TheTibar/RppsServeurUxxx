@@ -17,10 +17,10 @@ $instance = \ConnectDB::getInstance();
 $conn = $instance->getConnection();
 
 /* A REACTIVER */
-$create_process = $Process->newProcess('CRON_Import_RPPS_Complet', 0);
+$create_process = $Process->newProcess(0, 'CRON_Import_RPPS_Complet', 0);
 
 
-if ($stillValid && $create_process)
+if ($stillValid && $create_process == 0)
 {
     $stillValid = TRUE;
     $process_id = $Process->__get('process_id');
@@ -34,7 +34,7 @@ else
 }
 
 
-echo("step1");
+//echo("step1");
 /* A REACTIVER */
 if ($stillValid && $Log->writeLog("Début récupération chemin RPPSFiles", $process_id))
 {
@@ -66,7 +66,7 @@ else
 
 
 
-echo("step2");
+//echo("step2");
 /* A REACTIVER */
 if ($stillValid && $Log->writeLog("Début nettoyage répertoire RPPSFiles", $process_id))
 {
@@ -86,7 +86,7 @@ else
 }
 
 
-echo("step3");
+//echo("step3");
 
 /* A REACTIVER */
 if ($stillValid && $Log->writeLog("Début récupération chemin RPPS Annuaire santé", $process_id))
@@ -126,7 +126,7 @@ else
 }
 
 
-echo("step4");
+//echo("step4");
 
         
 /* A REACTIVER */
@@ -143,7 +143,7 @@ else
 }
 
 
-echo("step5");
+//echo("step5");
 /* A REACTIVER */
 if($stillValid && $Log->writeLog("Début dezippage RPPS", $process_id))
 {

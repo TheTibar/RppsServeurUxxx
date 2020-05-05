@@ -19,7 +19,7 @@ use Classes\Region;
 
 $User = new User();
 
-
+/*
 $login = 'emailarmelle@gmail.com';
 $token = $login . rand() . time() . rand();
 $token = hash("sha256", $token);
@@ -28,7 +28,7 @@ echo(nl2br($login . ' : ' . $token . "\n"));
 $password_orig = 'mdp1234';
 $password = hash("sha256", $password_orig);
 echo($password_orig . ' : ' . $password);
-/**/
+*/
 
 /*
 $result = $User->existsUser($login);
@@ -179,14 +179,24 @@ echo($result);
 
 $Region = new Region();
 
-/*
+/**/
 //$region_token = '34Qe3pQSJfAog==';
 $region_token = 'a34Qe3pQSJfAog==';
 $user_token = '1f2bf514291016cb9a4d3fa38f789fdf31a54239297fdb17c08a543cc0704a17';
 
+$method = "aes-256-ctr";
+$password = $user_token;
+$option = FALSE;
+
+$region_libelle = openssl_decrypt($region_token, $method, $password, $option);
+//$region_libelle = mysqli_real_escape_string($conn, $region_libelle);
+
+echo($region_libelle);
+
+
 $result = $Region->getRegionIdByToken($region_token, $user_token);
 echo($result);
-*/
+
 
 /*
 $result = $Region->getRegionCode(215);

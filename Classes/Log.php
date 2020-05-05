@@ -14,7 +14,7 @@ class Log
         $message = mysqli_real_escape_string($conn, $message);
         $process_id = mysqli_real_escape_string($conn, $process_id);
 
-        echo(nl2br("Etape (" . date('Y-m-d H:i:s') . ") : " . $message . ", Process : " . $process_id . "\n")); //à supprimer
+        echo(nl2br("Etape (" . date('Y-m-d H:i:s') . ") : " . $message . ", Process : " . $process_id . "\n")); 
         $sql = "INSERT INTO rpps_log (message, process_id) values ('$message', $process_id)";
         
         try {
