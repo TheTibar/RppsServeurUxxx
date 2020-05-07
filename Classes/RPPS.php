@@ -272,7 +272,7 @@ class RPPS
                 LEFT OUTER JOIN rpps_doctor_user DU on DU.identifiant_pp = CD.Identifiant_PP and DU.region_id = CD.region_id
                 WHERE 
                     DU.identifiant_pp is null
-                    and CD.region_id = $region_id";
+                    and DU.region_id = $region_id";
         
         $Log->writeLogNoEcho($region_id, "Début comptage Identifiant PP dans CD pas dans DU", $process_id);
         
@@ -295,8 +295,9 @@ class RPPS
         $sql = "SELECT count(distinct DU.Identifiant_PP) as nb_dsp_not_in_cd
                 FROM rpps_doctor_user DU
                 LEFT OUTER JOIN rpps_current_data CD on CD.identifiant_pp = DU.Identifiant_PP and CD.region_id = DU.region_id
-                where CD.identifiant_pp is null
-                AND DU.region_id = $region_id";
+                WHERE 
+                    CD.identifiant_pp is null
+                    AND DU.region_id = $region_id";
         
         $Log->writeLogNoEcho($region_id, "Début comptage Identifiant PP dans DU pas dans CD", $process_id);
         
