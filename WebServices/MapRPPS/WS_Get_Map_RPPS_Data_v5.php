@@ -38,8 +38,7 @@ if (! empty($region_map) && ! empty($speciality_map))
     $region_map = json_decode($region_map, true);
     $speciality_map = json_decode($speciality_map, true);
     
-    $data_xy = [];
-    $data_color = [];
+
     //var_dump($speciality_map);
     
     for($i = 0; $i < count($speciality_map); $i++)
@@ -161,6 +160,8 @@ if (! empty($region_map) && ! empty($speciality_map))
             ORDER BY display_order
         ";
 
+
+    $data_order = [];
     if ($sql_result = mysqli_query($conn, $sql))
     {
         while ($line = mysqli_fetch_assoc($sql_result))
@@ -200,7 +201,7 @@ if (! empty($region_map) && ! empty($speciality_map))
         ";
     
     
-        
+    $data_title = [];   
     if ($sql_result = mysqli_query($conn, $sql))
     {
         while ($line = mysqli_fetch_assoc($sql_result))
@@ -236,6 +237,8 @@ if (! empty($region_map) && ! empty($speciality_map))
                 AND RO.label <> 'ADMIN'
             ORDER BY display_order
         ";
+    
+    $data_color = [];
     
     if ($sql_result = mysqli_query($conn, $sql))
     {
