@@ -520,6 +520,31 @@ else
 }
 
 
+if($stillValid && $Log->writeLog("Début création index sur Code_commune_coord_structure_ sur table temporaire", $process_id))
+{
+    $sql = "CREATE INDEX idx_" . $newDataTableName . "_Code_commune_coord_structure_  ON $newDataTableName (Code_commune_coord_structure_) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT";
+    if (mysqli_query($conn, $sql))
+    {
+        $Log->writeLog("Fin création index sur Code_commune_coord_structure_ sur table temporaire", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur création index sur Code_commune_coord_structure_ sur table temporaire", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur création index Code_commune_coord_structure_ sur table temporaire", $process_id);
+    die();
+}
+
+
+
+
 if($stillValid && $Log->writeLog("Début ajout colonne id_region sur table temporaire", $process_id))
 {
     $sql = "ALTER TABLE " . $newDataTableName . " ADD region_id int";
@@ -545,7 +570,9 @@ else
 
 if($stillValid && $Log->writeLog("Début mise à jour id_region sur table temporaire", $process_id))
 {
-    $sql = "UPDATE " . $newDataTableName . " ND INNER JOIN rpps_region RR ON ND.Code_commune_coord_structure_ like concat(RR.code, '%') SET ND.region_id = RR.region_id";
+    $sql = "UPDATE " . $newDataTableName . " ND 
+            INNER JOIN rpps_region RR ON ND.Code_commune_coord_structure_ like concat(RR.code, '%') 
+            SET ND.region_id = RR.region_id";
     
     if (mysqli_query($conn, $sql))
     {
@@ -588,6 +615,329 @@ else
     $Log->writeLog("Erreur création index sur region_id sur table temporaire", $process_id);
     die();
 }
+
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour", $process_id))
+{
+    $sql = "SELECT count(*) as nb_old_code_insee
+            FROM " . $newDataTableName . " ND
+            LEFT OUTER JOIN rpps_geo_data GD on GD.code_insee = ND.Code_commune_coord_structure_
+            WHERE GD.code_insee is null
+            AND ND.Code_commune_coord_structure_ <> ''
+            AND ND.Code_commune_coord_structure_ not like '98%'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour : " . $data['nb_old_code_insee'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour", $process_id);
+    die();
+}
+
+if($stillValid && $Log->writeLog("Début mise à jour code_insee pas à jour", $process_id))
+{
+    $sql = "UPDATE " . $newDataTableName . "
+            INNER JOIN rpps_old_ci_new_ci CI on CI.old_code_insee = Code_commune_coord_structure_
+            SET Code_commune_coord_structure_ = CI.new_code_insee";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin mise à jour code_insee pas à jour", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur mise à jour code_insee pas à jour", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur mise à jour code_insee pas à jour", $process_id);
+    die();
+}
+
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour après mise à jour", $process_id))
+{
+    $sql = "SELECT count(*) as nb_old_code_insee
+            FROM " . $newDataTableName . " ND
+            LEFT OUTER JOIN rpps_geo_data GD on GD.code_insee = ND.Code_commune_coord_structure_
+            WHERE GD.code_insee is null
+            AND ND.Code_commune_coord_structure_ <> ''
+            AND ND.Code_commune_coord_structure_ not like '98%'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour après update : " . $data['nb_old_code_insee'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour après update", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour après update", $process_id);
+    die();
+}
+
+
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Marseille", $process_id))
+{
+    $sql = "SELECT count(*) as nb_err_mars
+            FROM " . $newDataTableName . "
+            WHERE ND.Code_commune_coord_structure_ = '13055'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour Marseille : " . $data['nb_err_mars'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour Marseille", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour Marseille", $process_id);
+    die();
+}
+
+
+
+if($stillValid && $Log->writeLog("Début mise à jour Marseille", $process_id))
+{
+    $sql = "UPDATE " . $newDataTableName . "
+            INNER JOIN rpps_code_postal_code_insee_arrond CP on CP.code_postal_detail = Code_postal_coord_structure_
+            SET Code_commune_coord_structure_ = CP.code_insee_detail
+            WHERE Code_commune_coord_structure_ = '13055'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin mise à jour Marseille", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur mise à jour Marseille", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur mise à jour Marseille", $process_id);
+    die();
+}
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Marseille après mise à jour", $process_id))
+{
+    $sql = "SELECT count(*) as nb_err_mars
+            FROM " . $newDataTableName . "
+            WHERE ND.Code_commune_coord_structure_ = '13055'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour Marseille après mise à jour : " . $data['nb_err_mars'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour Marseille après mise à jour", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour Marseille après mise à jour", $process_id);
+    die();
+}
+
+
+
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Lyon", $process_id))
+{
+    $sql = "SELECT count(*) as nb_err_lyon
+            FROM " . $newDataTableName . "
+            WHERE ND.Code_commune_coord_structure_ = '69123'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour Lyon : " . $data['nb_err_lyon'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour Lyon", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour Lyon", $process_id);
+    die();
+}
+
+
+if($stillValid && $Log->writeLog("Début mise à jour Lyon", $process_id))
+{
+    $sql = "UPDATE " . $newDataTableName . "
+            INNER JOIN rpps_code_postal_code_insee_arrond CP on CP.code_postal_detail = Code_postal_coord_structure_
+            SET Code_commune_coord_structure_ = CP.code_insee_detail
+            WHERE Code_commune_coord_structure_ = '69123'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin mise à jour Lyon", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur mise à jour Lyon", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur mise à jour Lyon", $process_id);
+    die();
+}
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Lyon après mise à jour", $process_id))
+{
+    $sql = "SELECT count(*) as nb_err_lyon
+            FROM " . $newDataTableName . "
+            WHERE ND.Code_commune_coord_structure_ = '69123'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour Lyon après mise à jour : " . $data['nb_err_lyon'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour Lyon après mise à jour", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour Lyon après mise à jour", $process_id);
+    die();
+}
+
+
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Paris", $process_id))
+{
+    $sql = "SELECT count(*) as nb_err_paris
+            FROM " . $newDataTableName . "
+            WHERE ND.Code_commune_coord_structure_ = '75056'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour Paris : " . $data['nb_err_paris'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour Paris", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour Paris", $process_id);
+    die();
+}
+
+
+if($stillValid && $Log->writeLog("Début mise à jour Paris", $process_id))
+{
+    $sql = "UPDATE " . $newDataTableName . "
+            INNER JOIN rpps_code_postal_code_insee_arrond CP on CP.code_postal_detail = Code_postal_coord_structure_
+            SET Code_commune_coord_structure_ = CP.code_insee_detail
+            WHERE Code_commune_coord_structure_ = '75056'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin mise à jour Paris", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur mise à jour Paris", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur mise à jour Paris", $process_id);
+    die();
+}
+
+if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Paris après mise à jour", $process_id))
+{
+    $sql = "SELECT count(*) as nb_err_paris
+            FROM " . $newDataTableName . "
+            WHERE ND.Code_commune_coord_structure_ = '75056'";
+    if ($result = mysqli_query($conn, $sql))
+    {
+        $data = mysqli_fetch_assoc($result);
+        $Log->writeLog("Fin comptage code_insee pas à jour Paris après mise à jour : " . $data['nb_err_paris'], $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur comptage code_insee pas à jour Paris après mise à jour", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur comptage code_insee pas à jour Paris après mise à jour", $process_id);
+    die();
+}
+
 
 
 if($stillValid && $Log->writeLog("Début création des professions", $process_id))
