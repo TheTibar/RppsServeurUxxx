@@ -27,7 +27,7 @@ $region_map = isset($_GET['region_map']) ? $_GET['region_map'] : "";
 $speciality_map = isset($_GET['speciality_map']) ? $_GET['speciality_map'] : "";
 $agency_id = isset($_GET['agency_id']) ? $_GET['agency_id'] : "";
 
-if (! empty($region_map) && ! empty($speciality_map))
+if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
 {
     $instance = \ConnectDB::getInstance();
     $conn = $instance->getConnection();
@@ -60,8 +60,8 @@ if (! empty($region_map) && ! empty($speciality_map))
                 US.first_name as first_name,
                 US.last_name as name,
                 US.color as color,
-                CD.Libelle_commune_coord_structure_ as commune,
-                CD.Code_commune_coord_structure_ as code_commune,
+                GD.label as commune,
+                GD.code_insee as code_commune,
                 'Point' AS type,
                 GD.x as x,
                 GD.y as y,
