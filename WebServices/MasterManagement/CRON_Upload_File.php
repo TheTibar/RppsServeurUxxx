@@ -704,7 +704,7 @@ else
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Marseille", $process_id))
 {
     $sql = "SELECT count(*) as nb_err_mars
-            FROM " . $newDataTableName . "
+            FROM " . $newDataTableName . " ND
             WHERE ND.Code_commune_coord_structure_ = '13055'";
     if ($result = mysqli_query($conn, $sql))
     {
@@ -757,7 +757,7 @@ else
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Marseille après mise à jour", $process_id))
 {
     $sql = "SELECT count(*) as nb_err_mars
-            FROM " . $newDataTableName . "
+            FROM " . $newDataTableName . " ND
             WHERE ND.Code_commune_coord_structure_ = '13055'";
     if ($result = mysqli_query($conn, $sql))
     {
@@ -785,7 +785,7 @@ else
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Lyon", $process_id))
 {
     $sql = "SELECT count(*) as nb_err_lyon
-            FROM " . $newDataTableName . "
+            FROM " . $newDataTableName . " ND
             WHERE ND.Code_commune_coord_structure_ = '69123'";
     if ($result = mysqli_query($conn, $sql))
     {
@@ -837,7 +837,7 @@ else
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Lyon après mise à jour", $process_id))
 {
     $sql = "SELECT count(*) as nb_err_lyon
-            FROM " . $newDataTableName . "
+            FROM " . $newDataTableName . " ND
             WHERE ND.Code_commune_coord_structure_ = '69123'";
     if ($result = mysqli_query($conn, $sql))
     {
@@ -864,7 +864,7 @@ else
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Paris", $process_id))
 {
     $sql = "SELECT count(*) as nb_err_paris
-            FROM " . $newDataTableName . "
+            FROM " . $newDataTableName . " ND
             WHERE ND.Code_commune_coord_structure_ = '75056'";
     if ($result = mysqli_query($conn, $sql))
     {
@@ -916,7 +916,7 @@ else
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour Paris après mise à jour", $process_id))
 {
     $sql = "SELECT count(*) as nb_err_paris
-            FROM " . $newDataTableName . "
+            FROM " . $newDataTableName . " ND
             WHERE ND.Code_commune_coord_structure_ = '75056'";
     if ($result = mysqli_query($conn, $sql))
     {
