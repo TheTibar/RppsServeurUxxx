@@ -179,7 +179,7 @@ echo($result);
 
 $Region = new Region();
 
-/**/
+/*
 //$region_token = '34Qe3pQSJfAog==';
 $region_token = 'a34Qe3pQSJfAog==';
 $user_token = '1f2bf514291016cb9a4d3fa38f789fdf31a54239297fdb17c08a543cc0704a17';
@@ -196,7 +196,7 @@ echo($region_libelle);
 
 $result = $Region->getRegionIdByToken($region_token, $user_token);
 echo($result);
-
+*/
 
 /*
 $result = $Region->getRegionCode(215);
@@ -212,5 +212,8 @@ echo($result);
 
 var_dump($Region->__get('region_doctors_array'));
 */
-    
+
+
+
+
 ?>
