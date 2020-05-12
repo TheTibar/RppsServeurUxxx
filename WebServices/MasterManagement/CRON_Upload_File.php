@@ -617,6 +617,29 @@ else
 }
 
 
+if($stillValid && $Log->writeLog("Début création index sur Libelle_savoir_faire sur table temporaire", $process_id))
+{
+    $sql = "CREATE INDEX idx_" . $newDataTableName . "_Libelle_savoir_faire  ON $newDataTableName (Libelle_savoir_faire) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT";
+    if (mysqli_query($conn, $sql))
+    {
+        $Log->writeLog("Fin création index sur Libelle_savoir_faire sur table temporaire", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur création index sur Libelle_savoir_faire sur table temporaire", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur création index sur Libelle_savoir_faire sur table temporaire", $process_id);
+    die();
+}
+
+
 if($stillValid && $Log->writeLog("Début comptage code_insee pas à jour", $process_id))
 {
     $sql = "SELECT count(*) as nb_old_code_insee
