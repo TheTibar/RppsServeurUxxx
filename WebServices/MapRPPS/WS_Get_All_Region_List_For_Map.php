@@ -25,12 +25,12 @@ function response($status, $status_message, $data)
 
     $Doctor = new Doctor();
     
-    $result = $Doctor->getAllSpecialities();
+    $result = $Doctor->getAllRegions();
     
     switch($result) {
         case 0:
-            $data = $Doctor->__get('speciality_array');
-            response(200, 'data_speciality', $data);
+            $data = $Doctor->__get('region_array');
+            response(200, 'data_region', $data);
             break;
         case 1:
             response(200, 'no_speciality', NULL);

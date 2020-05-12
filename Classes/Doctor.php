@@ -29,6 +29,7 @@ class Doctor
     private $create_doctors_detail_array = [];
     private $movement_summary_array = [];
     private $speciality_array = [];
+    private $region_array = [];
 
     public function test()
     {
@@ -960,6 +961,79 @@ class Doctor
             if (count($data) > 0)
             {
                 $this->speciality_array = $data;
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    
+    public function getAllRegions() {
+        $instance = \ConnectDB::getInstance();
+        $conn = $instance->getConnection();
+        
+        $sql = "SELECT
+    				region_id,
+    				libelle as label
+                FROM rpps_region";
+        
+        if ($sql_result = mysqli_query($conn, $sql))
+        {
+            $data = [];
+            while ($line = mysqli_fetch_assoc($sql_result))
+            {
+                $data[] = $line;
+            }
+            if (count($data) > 0)
+            {
+                $this->region_array = $data;
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    public function findDoctorsByIdentifiantPP($IdentifiantPP) {
+        $instance = \ConnectDB::getInstance();
+        $conn = $instance->getConnection();
+        
+        $sql = "SELECT 
+                	CD.Code_civilite, 
+                	CD.Nom_d_exercice, 
+                    CD.Prenom_d_exercice, 
+                    CD.Libelle_savoir_faire, 
+                    CD.Libelle_mode_exercice, 
+                    CD.Raison_sociale_site, 
+                    CD.Libelle_Voie_coord_structure_,
+                    CD.Bureau_cedex_coord_structure_,
+                    CD.Telephone_coord_structure_,
+                    CD.Adresse_e_mail_coord_structure_
+                FROM rpps_current_data CD
+                WHERE CD.Identifiant_PP like '%$IdentifiantPP%'";
+        
+        if ($sql_result = mysqli_query($conn, $sql))
+        {
+            $data = [];
+            while ($line = mysqli_fetch_assoc($sql_result))
+            {
+                $data[] = $line;
+            }
+            if (count($data) > 0)
+            {
+                $this->region_array = $data;
                 return 0;
             }
             else
