@@ -967,7 +967,7 @@ if($stillValid && $Log->writeLog("Début création des professions", $process_id
 {
     $sql = "INSERT INTO rpps_profession_filter (type, label, keep)
                 SELECT distinct 'specialite', ND.Libelle_savoir_faire, 0
-                FROM rpps_new_data ND
+                FROM " . $newDataTableName . " ND
                 LEFT OUTER JOIN rpps_profession_filter PF ON PF.label = ND.Libelle_savoir_faire
                 WHERE PF.label is null";
 
