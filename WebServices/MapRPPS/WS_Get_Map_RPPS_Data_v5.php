@@ -83,8 +83,8 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
             	AND CD.region_id = DU.region_id
             INNER JOIN rpps_geo_data GD ON GD.code_insee = CD.Code_commune_coord_structure_
             WHERE 1 = 1
-            	AND CD.Libelle_savoir_faire IN ('Pneumologie')
-            	AND CD.region_id IN (97)
+            	AND CD.Libelle_savoir_faire IN ($filter_speciality)
+            	AND CD.region_id IN ($filter_region)
             GROUP BY display_order, first_name, name, color, Identifiant_PP, type
             ) DRV ON DRV.code_commune = GD.code_insee
             GROUP BY 
@@ -135,8 +135,8 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
             	INNER JOIN rpps_current_data CD on CD.Identifiant_PP = DU.identifiant_pp
             		AND CD.region_id = DU.region_id
             	WHERE 1 = 1
-            		AND CD.Libelle_savoir_faire in  ('Pneumologie')
-            		AND CD.region_id IN (97)
+            		AND CD.Libelle_savoir_faire in  ($filter_speciality)
+            		AND CD.region_id IN ($filter_region)
             	GROUP BY display_order, speciality, Identifiant_PP
             ) DRV
             GROUP BY display_order, code_commune, speciality";
