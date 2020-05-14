@@ -56,24 +56,37 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
     //$filter_speciality = mysqli_real_escape_string($conn, $filter_speciality); 
     
     $sql = "SELECT 
-                US.display_order as display_order,
-                US.first_name as first_name,
-                US.last_name as name,
-                US.color as color,
+            	DRV.display_order as display_order,
+                DRV.first_name as first_name,
+                DRV.name as name,
+                DRV.color as color,
                 GD.label as commune,
                 GD.code_insee as code_commune,
-                'Point' AS type,
+                DRV.type as type,
                 GD.x as x,
                 GD.y as y,
-                COALESCE(count(CD.Identifiant_PP), 0) as weight
+                COALESCE(count(DRV.Identifiant_PP), 0) as weight
+            FROM rpps_geo_data GD
+            INNER JOIN
+            (
+            SELECT
+            	US.display_order as display_order,
+            	US.first_name as first_name,
+            	US.last_name as name,
+            	US.color as color,
+            	CD.Identifiant_PP as Identifiant_PP,
+            	MIN(GD.code_insee) as code_commune,
+                'Point' AS type
             FROM rpps_user US
             INNER JOIN rpps_doctor_user DU ON DU.user_id = US.user_id
             INNER JOIN rpps_current_data CD ON CD.Identifiant_PP = DU.identifiant_pp
             	AND CD.region_id = DU.region_id
             INNER JOIN rpps_geo_data GD ON GD.code_insee = CD.Code_commune_coord_structure_
             WHERE 1 = 1
-                AND CD.Libelle_savoir_faire IN ($filter_speciality)
-                AND CD.region_id IN ($filter_region)
+            	AND CD.Libelle_savoir_faire IN ('Pneumologie')
+            	AND CD.region_id IN (97)
+            GROUP BY display_order, first_name, name, color, Identifiant_PP, type
+            ) DRV ON DRV.code_commune = GD.code_insee
             GROUP BY 
             display_order, first_name, name, color, commune, code_commune, type, x, y";
     
@@ -106,17 +119,26 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
     // On récupère les infos pour détailler les données dans la popup de chaque marker de la carte
     
     $sql = "SELECT 
-            	US.display_order as display_order, 
-            	CD.Code_commune_coord_structure_ as code_commune, 
-            	CD.Libelle_savoir_faire as speciality, 
-            	COALESCE(count(CD.Identifiant_PP), 0) as nb_spec_by_sp
-            FROM rpps_user US
-            INNER JOIN rpps_doctor_user DU on DU.user_id = US.user_id
-            INNER JOIN rpps_current_data CD on CD.Identifiant_PP = DU.identifiant_pp
-                AND CD.region_id = DU.region_id
-            WHERE 1 = 1
-            	AND CD.Libelle_savoir_faire in  ($filter_speciality)
-                AND CD.region_id IN ($filter_region)
+            	DRV.display_order as display_order,
+                DRV.code_commune as code_commune,
+                DRV.speciality as speciality,
+                COALESCE(count(DRV.Identifiant_PP), 0) as nb_spec_by_sp
+            FROM
+            (
+            	SELECT 
+            		US.display_order as display_order, 
+            		MIN(CD.Code_commune_coord_structure_) as code_commune, 
+            		CD.Libelle_savoir_faire as speciality, 
+            		CD.Identifiant_PP as Identifiant_PP
+            	FROM rpps_user US
+            	INNER JOIN rpps_doctor_user DU on DU.user_id = US.user_id
+            	INNER JOIN rpps_current_data CD on CD.Identifiant_PP = DU.identifiant_pp
+            		AND CD.region_id = DU.region_id
+            	WHERE 1 = 1
+            		AND CD.Libelle_savoir_faire in  ('Pneumologie')
+            		AND CD.region_id IN (97)
+            	GROUP BY display_order, speciality, Identifiant_PP
+            ) DRV
             GROUP BY display_order, code_commune, speciality";
     
     $data_detail = [];
