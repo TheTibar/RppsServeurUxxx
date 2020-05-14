@@ -56,26 +56,36 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
     //$filter_speciality = mysqli_real_escape_string($conn, $filter_speciality); 
     
     $sql = "SELECT 
-                US.display_order as display_order,
-                US.first_name as first_name,
-                US.last_name as name,
-                US.color as color,
-                GD.label as commune,
-                GD.code_insee as code_commune,
-                'Point' AS type,
-                GD.x as x,
-                GD.y as y,
-                COALESCE(count(CD.Identifiant_PP), 0) as weight
-            FROM rpps_user US
-            INNER JOIN rpps_doctor_user DU ON DU.user_id = US.user_id
-            INNER JOIN rpps_current_data CD ON CD.Identifiant_PP = DU.identifiant_pp
-            	AND CD.region_id = DU.region_id
-            INNER JOIN rpps_geo_data GD ON GD.code_insee = CD.Code_commune_coord_structure_
-            WHERE 1 = 1
-                AND CD.Libelle_savoir_faire IN ($filter_speciality)
-                AND CD.region_id IN ($filter_region)
+            display_order, first_name, name, color, commune, code_commune, type, x, y, COALESCE(count(Identifiant_PP), 0) as weight
+            FROM
+            (
+                SELECT 
+                    MIN(US.display_order) as display_order,
+                    MIN(US.first_name) as first_name,
+                    MIN(US.last_name) as name,
+                    MIN(US.color) as color,
+                    MIN(GD.label) as commune,
+                    MIN(GD.code_insee) as code_commune,
+                    MIN('Point') AS type,
+                    MIN(GD.x) as x,
+                    MIN(GD.y) as y,
+                    CD.Identifiant_PP as Identifiant_PP
+                    /*,
+                    COALESCE(count(CD.Identifiant_PP), 0) as weight*/
+    
+                FROM rpps_user US
+                INNER JOIN rpps_doctor_user DU ON DU.user_id = US.user_id
+                INNER JOIN rpps_current_data CD ON CD.Identifiant_PP = DU.identifiant_pp
+                	AND CD.region_id = DU.region_id
+                INNER JOIN rpps_geo_data GD ON GD.code_insee = CD.Code_commune_coord_structure_
+                WHERE 1 = 1
+                    AND CD.Libelle_savoir_faire IN ('$filter_speciality')
+                    AND CD.region_id IN ($filter_region)
+                GROUP BY 
+                Identifiant_PP
+            ) DRV
             GROUP BY 
-            display_order, first_name, name, color, commune, code_commune, type, x, y";
+                display_order, first_name, name, color, commune, code_commune, type, x, y";
     
     //echo(nl2br($sql . "\n"));
     $data_xy = [];
@@ -106,18 +116,26 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
     // On récupère les infos pour détailler les données dans la popup de chaque marker de la carte
     
     $sql = "SELECT 
-            	US.display_order as display_order, 
-            	CD.Code_commune_coord_structure_ as code_commune, 
-            	CD.Libelle_savoir_faire as speciality, 
-            	COALESCE(count(CD.Identifiant_PP), 0) as nb_spec_by_sp
-            FROM rpps_user US
-            INNER JOIN rpps_doctor_user DU on DU.user_id = US.user_id
-            INNER JOIN rpps_current_data CD on CD.Identifiant_PP = DU.identifiant_pp
-                AND CD.region_id = DU.region_id
-            WHERE 1 = 1
-            	AND CD.Libelle_savoir_faire in  ($filter_speciality)
-                AND CD.region_id IN ($filter_region)
-            GROUP BY display_order, code_commune, speciality";
+            display_order, code_commune, speciality, COALESCE(count(Identifiant_PP), 0) as nb_spec_by_sp
+            FROM
+            (
+                SELECT 
+                	MIN(US.display_order) as display_order, 
+                	MIN(CD.Code_commune_coord_structure_) as code_commune, 
+                	MIN(CD.Libelle_savoir_faire) as speciality, 
+                	CD.Identifiant_PP as Identifiant_PP
+                FROM rpps_user US
+                INNER JOIN rpps_doctor_user DU on DU.user_id = US.user_id
+                INNER JOIN rpps_current_data CD on CD.Identifiant_PP = DU.identifiant_pp
+                    AND CD.region_id = DU.region_id
+                WHERE 1 = 1
+                	AND CD.Libelle_savoir_faire in  ('$filter_speciality')
+                    AND CD.region_id IN ($filter_region)
+                GROUP BY 
+                Identifiant_PP
+            ) DRV
+            GROUP BY display_order, code_commune, speciality
+            ";
     
     $data_detail = [];
     
