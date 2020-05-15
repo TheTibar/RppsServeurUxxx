@@ -30,6 +30,7 @@ class Doctor
     private $movement_summary_array = [];
     private $speciality_array = [];
     private $region_array = [];
+    private $doctors_by_sp_ci_user = [];
 
     public function test()
     {
@@ -1046,6 +1047,55 @@ class Doctor
             return -1;
         }
     }
+    
+    public function getDoctorsBySpecialityUserCity($speciality, $user_id, $city_id)
+    {
+        $instance = \ConnectDB::getInstance();
+        $conn = $instance->getConnection();
+        
+        $speciality = mysqli_real_escape_string($conn, $speciality);
+        $user_id = mysqli_real_escape_string($conn, $user_id);
+        $city_id = mysqli_real_escape_string($conn, $city_id);
+        
+        
+        $sql = "SELECT DISTINCT 
+                	ND.Nom_d_exercice as name,
+                    ND.Prenom_d_exercice as first_name,
+                    ND.Identifiant_PP as identifiant_pp
+                FROM rpps_new_data ND
+                INNER JOIN rpps_doctor_user DU ON DU.identifiant_pp = ND.Identifiant_PP
+                WHERE 1=1 
+                AND ND.Code_commune_coord_structure_ = '$city_id'
+                AND ND.Libelle_savoir_faire = '$speciality'
+                AND DU.user_id = $user_id
+                ORDER BY name, first_name";
+        
+        //echo($sql);
+        
+        if ($sql_result = mysqli_query($conn, $sql))
+        {
+            while ($line = mysqli_fetch_assoc($sql_result))
+            {
+                $data[] = $line;
+            }
+            if (count($data) > 0)
+            {
+                $this->doctors_by_sp_ci_user = $data;
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    
+    
+    
 }
 
 ?>

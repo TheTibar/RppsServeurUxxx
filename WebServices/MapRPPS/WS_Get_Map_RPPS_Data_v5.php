@@ -56,6 +56,7 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
     //$filter_speciality = mysqli_real_escape_string($conn, $filter_speciality); 
     
     $sql = "SELECT 
+                DRV.user_id as user_id,
             	DRV.display_order as display_order,
                 DRV.first_name as first_name,
                 DRV.name as name,
@@ -70,6 +71,7 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
             INNER JOIN
             (
             SELECT
+                US.user_id as user_id,
             	US.display_order as display_order,
             	US.first_name as first_name,
             	US.last_name as name,
@@ -85,10 +87,10 @@ if (! empty($region_map) && ! empty($speciality_map) && ! empty($agency_id))
             WHERE 1 = 1
             	AND CD.Libelle_savoir_faire IN ($filter_speciality)
             	AND CD.region_id IN ($filter_region)
-            GROUP BY display_order, first_name, name, color, Identifiant_PP, type
+            GROUP BY user_id, display_order, first_name, name, color, Identifiant_PP, type
             ) DRV ON DRV.code_commune = GD.code_insee
             GROUP BY 
-            display_order, first_name, name, color, commune, code_commune, type, x, y";
+            user_id, display_order, first_name, name, color, commune, code_commune, type, x, y";
     
     //echo(nl2br($sql . "\n"));
     $data_xy = [];
