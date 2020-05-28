@@ -204,6 +204,30 @@ else
       
 
 
+if ($stillValid && $Log->writeLog("Début récupération nom fichier RPPS", $process_id))
+{
+    $finalFile = glob($target_directory . '*Personne_activite*.txt', GLOB_BRACE);
+    if (count($finalFile) == 1)
+    {
+        $finalFile = strval($finalFile[0]);
+        $Log->writeLog('Fin récupération nom fichier RPPS : ' . $finalFile, $process_id);
+        $stillValid = TRUE;
+    }
+    else 
+    {
+        $Log->writeLog('Erreur récupération nom fichier RPPS (plusieurs fichiers)', $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else 
+{
+    $Log->writeLog('Erreur récupération nom fichier RPPS (plusieurs fichiers)', $process_id);
+    $stillValid = FALSE;
+    die();
+}
+
+
 $newDataTableName = 'rpps_new_data'; //ne pas commenter pour les tests
 
 /* A REACTIVER */
@@ -230,32 +254,6 @@ else
     $stillValid = FALSE;
     die();
 }
-
-
-
-if ($stillValid && $Log->writeLog("Début récupération nom fichier RPPS", $process_id))
-{
-    $finalFile = glob($target_directory . '*Personne_activite*.txt', GLOB_BRACE);
-    if (count($finalFile) == 1)
-    {
-        $finalFile = strval($finalFile[0]);
-        $Log->writeLog('Fin récupération nom fichier RPPS : ' . $finalFile, $process_id);
-        $stillValid = TRUE;
-    }
-    else 
-    {
-        $Log->writeLog('Erreur récupération nom fichier RPPS (plusieurs fichiers)', $process_id);
-        $stillValid = FALSE;
-        die();
-    }
-}
-else 
-{
-    $Log->writeLog('Erreur récupération nom fichier RPPS (plusieurs fichiers)', $process_id);
-    $stillValid = FALSE;
-    die();
-}
-
 
 
 
