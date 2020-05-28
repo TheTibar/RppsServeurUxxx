@@ -151,7 +151,7 @@ else
 if($stillValid && $Log->writeLog("Début dezippage RPPS", $process_id))
 {
     $zip = new ZipArchive;
-    echo($target_directory . $file_name);
+    $Log->writeLog("Fichier : " . $target_directory . $file_name, $process_id);
     if ($zip->open($target_directory . $file_name) === TRUE) 
     {
         $zip->extractTo($target_directory);
