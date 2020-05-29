@@ -543,78 +543,6 @@ else
 
 
 
-if($stillValid && $Log->writeLog("Début ajout colonne id_region sur table temporaire", $process_id))
-{
-    $sql = "ALTER TABLE " . $newDataTableName . " ADD region_id int";
-    if (mysqli_query($conn, $sql))
-    {
-        $Log->writeLog("Fin ajout colonne id_region sur table temporaire", $process_id);
-        $stillValid = TRUE;
-    }
-    else
-    {
-        $Log->writeLog("Erreur ajout colonne id_region sur table temporaire", $process_id);
-        $stillValid = FALSE;
-        die();
-    }
-}
-else
-{
-    $stillValid = FALSE;
-    $Log->writeLog("Erreur ajout colonne id_region sur table temporaire", $process_id);
-    die();
-}
-
-
-if($stillValid && $Log->writeLog("Début mise à jour id_region sur table temporaire", $process_id))
-{
-    $sql = "UPDATE " . $newDataTableName . " ND 
-            INNER JOIN rpps_region RR ON ND.Code_commune_coord_structure_ like concat(RR.code, '%') 
-            SET ND.region_id = RR.region_id";
-    
-    if (mysqli_query($conn, $sql))
-    {
-        $Log->writeLog("Fin mise à jour id_region sur table temporaire", $process_id);
-        $stillValid = TRUE;
-    }
-    else
-    {
-        $Log->writeLog("Erreur mise à jour id_region sur table temporaire", $process_id);
-        $stillValid = FALSE;
-        die();
-    }
-}
-else
-{
-    $stillValid = FALSE;
-    $Log->writeLog("Erreur mise à jour id_region sur table temporaire", $process_id);
-    die();
-}
-
-
-if($stillValid && $Log->writeLog("Début création index sur region_id sur table temporaire", $process_id))
-{
-    $sql = "CREATE INDEX idx_" . $newDataTableName . "_region_id  ON $newDataTableName (region_id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT";
-    if (mysqli_query($conn, $sql))
-    {
-        $Log->writeLog("Fin création index sur region_id sur table temporaire", $process_id);
-        $stillValid = TRUE;
-    }
-    else
-    {
-        $Log->writeLog("Erreur création index sur region_id sur table temporaire", $process_id);
-        $stillValid = FALSE;
-        die();
-    }
-}
-else
-{
-    $stillValid = FALSE;
-    $Log->writeLog("Erreur création index sur region_id sur table temporaire", $process_id);
-    die();
-}
-
-
 if($stillValid && $Log->writeLog("Début création index sur Libelle_savoir_faire sur table temporaire", $process_id))
 {
     $sql = "CREATE INDEX idx_" . $newDataTableName . "_Libelle_savoir_faire  ON $newDataTableName (Libelle_savoir_faire) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT";
@@ -986,6 +914,80 @@ else
 {
     $stillValid = FALSE;
     $Log->writeLog("Fin création des professions KO", $process_id);
+    die();
+}
+
+
+
+
+if($stillValid && $Log->writeLog("Début ajout colonne id_region sur table temporaire", $process_id))
+{
+    $sql = "ALTER TABLE " . $newDataTableName . " ADD region_id int";
+    if (mysqli_query($conn, $sql))
+    {
+        $Log->writeLog("Fin ajout colonne id_region sur table temporaire", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur ajout colonne id_region sur table temporaire", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur ajout colonne id_region sur table temporaire", $process_id);
+    die();
+}
+
+
+if($stillValid && $Log->writeLog("Début mise à jour id_region sur table temporaire", $process_id))
+{
+    $sql = "UPDATE " . $newDataTableName . " ND
+            INNER JOIN rpps_region RR ON ND.Code_commune_coord_structure_ like concat(RR.code, '%')
+            SET ND.region_id = RR.region_id";
+    
+    if (mysqli_query($conn, $sql))
+    {
+        $Log->writeLog("Fin mise à jour id_region sur table temporaire", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur mise à jour id_region sur table temporaire", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur mise à jour id_region sur table temporaire", $process_id);
+    die();
+}
+
+
+if($stillValid && $Log->writeLog("Début création index sur region_id sur table temporaire", $process_id))
+{
+    $sql = "CREATE INDEX idx_" . $newDataTableName . "_region_id  ON $newDataTableName (region_id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT";
+    if (mysqli_query($conn, $sql))
+    {
+        $Log->writeLog("Fin création index sur region_id sur table temporaire", $process_id);
+        $stillValid = TRUE;
+    }
+    else
+    {
+        $Log->writeLog("Erreur création index sur region_id sur table temporaire", $process_id);
+        $stillValid = FALSE;
+        die();
+    }
+}
+else
+{
+    $stillValid = FALSE;
+    $Log->writeLog("Erreur création index sur region_id sur table temporaire", $process_id);
     die();
 }
 
