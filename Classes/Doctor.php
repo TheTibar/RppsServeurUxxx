@@ -1059,16 +1059,29 @@ class Doctor
         
         
         $sql = "SELECT DISTINCT 
-                	ND.Nom_d_exercice as name,
-                    ND.Prenom_d_exercice as first_name,
-                    ND.Identifiant_PP as identifiant_pp
-                FROM rpps_new_data ND
-                INNER JOIN rpps_doctor_user DU ON DU.identifiant_pp = ND.Identifiant_PP
+                	CD.Nom_d_exercice as name,
+                    CD.Prenom_d_exercice as first_name,
+                    CD.Identifiant_PP as identifiant_pp,
+                    COALESCE(GD.label, '') as other_city,
+                    CASE WHEN NOT EXISTS 
+                    	(
+                            SELECT 1 FROM rpps_current_data CD3
+                            WHERE CD3.Identifiant_PP = CD.Identifiant_PP
+                            AND CD3.region_id = CD.region_id
+                            AND CD3.Code_commune_coord_structure_ < CD2.Code_commune_coord_structure_
+                            )
+                    THEN 'Oui'
+                    ELSE 'Non'
+                    END AS count_for
+                FROM rpps_current_data CD
+                INNER JOIN rpps_doctor_user DU ON DU.identifiant_pp = CD.Identifiant_PP
+                LEFT OUTER JOIN rpps_current_data CD2 ON CD2.Identifiant_PP = CD.Identifiant_PP
+                LEFT OUTER JOIN rpps_geo_data GD ON GD.code_insee = CD2.Code_commune_coord_structure_
                 WHERE 1=1 
-                AND ND.Code_commune_coord_structure_ = '$city_id'
-                AND ND.Libelle_savoir_faire = '$speciality'
+                AND CD.Code_commune_coord_structure_ = '$city_id'
+                AND CD.Libelle_savoir_faire = '$speciality'
                 AND DU.user_id = $user_id
-                ORDER BY name, first_name";
+                ORDER BY name, first_name, CD2.Code_commune_coord_structure_";
         
         //echo($sql);
         
