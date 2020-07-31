@@ -71,7 +71,7 @@ class Doctor
                 	CD.Identifiant_PP, DU.user_id, $process_id, $region_id, 'REMOVE'
                 	FROM rpps_doctor_user DU
                 	INNER JOIN rpps_current_data CD on CD.identifiant_pp = DU.identifiant_pp and CD.region_id = DU.region_id
-                	LEFT OUTER JOIN rpps_new_data ND on ND.Identifiant_PP = DU.identifiant_pp
+                	LEFT OUTER JOIN rpps_new_data ND on ND.Identifiant_PP = DU.identifiant_pp and ND.region_id = DU.region_id
                 	WHERE ND.Identifiant_PP is null
                     AND DU.region_id = $region_id";
         
